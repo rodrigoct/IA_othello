@@ -1,8 +1,8 @@
-....B...
-....B...
-..B.BW..
-..BBBWW.
-..BBBW..
-.....W..
-.....W..
-.....W..
+WWWBBWWW
+WWBBBBWB
+WWBBWBW.
+WWWBBWBB
+WWBBWBBB
+WWWWBWWB
+WWWWWWWB
+WWWWWWWW

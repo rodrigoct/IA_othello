@@ -2,6 +2,8 @@ from threading import Thread
 import sys
 import time
 from threading import Timer
+import py_compile
+py_compile.compile("othello.py")
 
 EMPTY, BLACK, WHITE = '.', 'B', 'W'
 PIECES = (EMPTY, BLACK, WHITE)
@@ -30,8 +32,8 @@ TAB_VALORES = [
     160, -30,  30,   5,   5,  30, -30, 160,
     -30, -45,  -15,  -5,  -5,  -15, -45, -30,
     20,  -5,  15,   3,   3,  15,  -5,  20,
-    5,  -5,   3,   3,   3,   3,  -5,   5,
-    5,  -5,   3,   3,   3,   3,  -5,   5,
+    10,  -5,   3,   3,   3,   3,  -5,   10,
+    10,  -5,   3,   3,   3,   3,  -5,   10,
     20,  -5,  15,   3,   3,  15,  -5,  20,
     -30, -45,  -15,  -5,  -5,  -15, -45, -30,
     160, -30,  30,   5,   5,  30, -30, 160
@@ -55,7 +57,7 @@ class start_alfabeta(Thread):
             filho = self.filho
             profundidade = self.profundidade
             make_mov(new_tab, filho, cor)
-            self.val = minimax_alfabeta(new_tab, 17, False, cor, oponente(cor), float('-infinity'), float('infinity'))
+            self.val = minimax_alfabeta(new_tab, profundidade, False, cor, oponente(cor), float('-infinity'), float('infinity'))
             #print "threadname retorna val", self.val, self
     def getFilhoValor(self):
         #print "Retorna getvalue"
@@ -123,7 +125,7 @@ def play(tabuleiro, cor, torneio):
     #print "Retorno da funcao filhos", filhos
     for filho in filhos:
 
-        if(filho == 0 or filho == 7 or filho == 56 or filho == 63):
+        if((filho == 0 or filho == 7 or filho == 56 or filho == 63) and torneio):
             posMov = filho
             x = pos_x(posMov)
             y = pos_y(posMov)
@@ -305,7 +307,7 @@ def mov_possiveis(tab, pos, cor, movs):
 def minimax_alfabeta(tab, profundidade, maxPlayer, corInit, cor, alfa, beta):
     new_tab = tab[:]
     timeC = time.time() - tempBase
-    if (timeC > 30):
+    if (timeC > tempLimit):
         #print "Tempo expirou ", profundidade
         return heuristica(tab, corInit)
     if profundidade == 0 or tab_full(tab):
@@ -438,14 +440,34 @@ def human(tab, cor):
         pos = pos_tab(x, y)
         print "Posicoes possiveis x",x, "y",y'''
     while(True):
-        go_x = int(raw_input('Digite x '))
-        go_y = int(raw_input('Digite y '))
-        go_pos = pos_tab(go_x, go_y)
-        if(filhos.__contains__(go_pos)):
-            make_mov(tab, go_pos, cor)
-            break
+        x = raw_input('Digite x ')
+        y = raw_input('Digite y ')
+        int_control = True
+
+        for i in x:
+            if(i.isalpha()):
+                int_control = False
+                break
+        for i in y:
+            if(i.isalpha()):
+                int_control = False
+                break
+
+        if(len(x) == 0 or len(y) == 0):
+                int_control = False
+
+        if(not(int_control)):
+            print "Formato invalido, digite novamente"
+
         else:
-            print "Movimento invalido"
+            go_x = int(x)
+            go_y = int(y)
+            go_pos = pos_tab(go_x, go_y)
+            if(filhos.__contains__(go_pos)):
+                make_mov(tab, go_pos, cor)
+                break
+            else:
+                print "Movimento invalido"
 
 
 def conta_pecas(tabuleiro):
@@ -517,10 +539,10 @@ def main(cmd_args):
             saida.write("-1,-1")
 
 
-    '''print_board(tab)
+    print_board(tab)
     print "Verifica vencedor"
     tup = conta_pecas(tab)
-    print "Pecas pretas ", tup[0],"Pecas brancas", tup[1]'''
+    print "Pecas pretas ", tup[0],"Pecas brancas", tup[1]
 
 if __name__ == '__main__':
     main(sys.argv[1:]) 
