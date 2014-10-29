@@ -445,12 +445,12 @@ def human(tab, cor):
         print "Nao ha mov valido"
         return 0
 
-    '''for pos_possiveis in filhos:
+    for pos_possiveis in filhos:
         #print pos_possiveis
         x = pos_x(pos_possiveis)
         y = pos_y(pos_possiveis)
         pos = pos_tab(x, y)
-        print "Posicoes possiveis x",x, "y",y'''
+        print "Posicoes possiveis x",x, "y",y
     while(True):
         x = raw_input('Digite x ')
         y = raw_input('Digite y ')
@@ -518,29 +518,59 @@ def player_cor(nome):
 def main(cmd_args):
     count = 0
     if (len(cmd_args) == 0):
+        while(True):
+            cor = raw_input("Escolha a cor para jogar (preta ou branca)\n")
+
+            if(cor == "Preta" or cor == "preta" or cor == "preto" or cor == "B"):
+                print "Sua cor eh a preta (B)"
+                cor = BLACK
+                break
+            elif(cor == "Branca" or cor == "branca" or cor == "branco" or cor == "W"):
+                print "Sua cor eh a branca (W)"
+                cor = WHITE
+                break
+            else:
+                print "Digitou cor invalida"
+
         tab = tabuleiro_init()
-        #while(not tab_full(tab) and count <= 2):
+        
         while(not tab_full(tab)):
-            cor = BLACK
             count = count + 1
             print_board(tab)
             cor_op = oponente(cor)
-            enable_human = human(tab, cor)
-            #enable_human = play(tab, cor, False)
-            if(enable_human == -1):
-                print "GAME OVER"
-                break
-            print_board(tab)
-            print "PENSANDO"
-            enable_play = play(tab, cor_op, False)
-            if(enable_play == -1):
-                print "GAME OVER"
-                break
-            print "Retorno human e play", enable_human, enable_play
-            if(enable_human == 0 and enable_play == 0):
-                print "GAME OVER NAO HA MOVS POSSIVEIS"
-                break
+            if(cor == BLACK):
+                enable_human = human(tab, cor)
+                #enable_human = play(tab, cor, False)
+                if(enable_human == -1):
+                    print "GAME OVER"
+                    break
+                print_board(tab)
+                print "PENSANDO"
+                enable_play = play(tab, cor_op, False)
+                if(enable_play == -1):
+                    print "GAME OVER"
+                    break
+                #print "Retorno human e play", enable_human, enable_play
+                if(enable_human == 0 and enable_play == 0):
+                    print "GAME OVER NAO HA MOVS POSSIVEIS"
+                    break
+            
+            else:
 
+                print "PENSANDO"
+                enable_play = play(tab, cor_op, False)
+                if(enable_play == -1):
+                    print "GAME OVER"
+                    break
+                print_board(tab)
+                enable_human = human(tab, cor)
+                if(enable_human == -1):
+                    print "GAME OVER"
+                    break
+                    
+                if(enable_human == 0 and enable_play == 0):
+                    print "GAME OVER NAO HA MOVS POSSIVEIS"
+                    break
     else:
         cor = player_cor(cmd_args[1])
         tab = ler_tab(cmd_args[0])
@@ -550,11 +580,11 @@ def main(cmd_args):
             saida = open ( 'move.txt' , 'w' )
             saida.write("-1,-1")
 
-'''
+
     print_board(tab)
     print "Verifica vencedor"
     tup = conta_pecas(tab)
-    print "Pecas pretas ", tup[0],"Pecas brancas", tup[1]'''
+    print "Pecas pretas ", tup[0],"Pecas brancas", tup[1]
 
 if __name__ == '__main__':
     main(sys.argv[1:]) 
