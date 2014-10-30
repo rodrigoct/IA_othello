@@ -2,8 +2,8 @@ from threading import Thread
 import sys
 import time
 from threading import Timer
-import py_compile
-py_compile.compile("othello.py")
+#import py_compile
+#py_compile.compile("othello.py")
 
 EMPTY, BLACK, WHITE = '.', 'B', 'W'
 PIECES = (EMPTY, BLACK, WHITE)
@@ -30,12 +30,12 @@ DIRECTIONS = (UP, NE, RIGHT, SE, DOWN, SWE, LEFT, NWE)
 TAB_VALORES = [
 
     160, -30,  30,   5,   5,  30, -30, 160,
-    -30, -45,  -15,  -5,  -5,  -15, -45, -30,
+    -30, -55,  -15,  -5,  -5,  -15, -55, -30,
     30,  -5,  15,   3,   3,  15,  -5,  30,
     10,  -5,   3,   3,   3,   3,  -5,   10,
     10,  -5,   3,   3,   3,   3,  -5,   10,
     30,  -5,  15,   3,   3,  15,  -5,  30,
-    -30, -45,  -15,  -5,  -5,  -15, -45, -30,
+    -30, -55,  -15,  -5,  -5,  -15, -55, -30,
     160, -30,  30,   5,   5,  30, -30, 160
 
 ]
@@ -88,7 +88,8 @@ def tabuleiro_init():
 
 
 def play(tabuleiro, cor, torneio):
-    global tempBase, tempLimit
+    global tempBase, tempLimit, escreve_mov
+    write_mov = True
     tempBase = time.time()
     pos_pecas = find_pecas(tabuleiro, cor)
     threads = []
@@ -97,34 +98,71 @@ def play(tabuleiro, cor, torneio):
         return -1
     
     filhos = find_filhos(tabuleiro, cor)
-
+    tup = conta_pecas(tabuleiro)
+    n_pecas = tup[0] + tup[1]
     if(len(filhos) == 0):
         print "Nao ha mov valido"
         return 0
 
-    if(len(filhos) <= 2):
-        profundidade = 10
-        tempLimit = 3.5
+    if(n_pecas < 40):
 
-    if(len(filhos) >= 3 and len(filhos) <= 5):
-        profundidade = 6
-        tempLimit = 2.7
+        if(len(filhos) <= 2):
+            profundidade = 10
+            tempLimit = 3.5
 
-    if(len(filhos) > 5 and len(filhos) < 8):
-        profundidade = 5
-        tempLimit = 2.7
+        if(len(filhos) == 3):
+            profundidade = 8
+            tempLimit = 3.5
 
-    if(len(filhos) >= 8 and len(filhos) < 10):
-        profundidade = 4
-        tempLimit = 2.5
+        elif(len(filhos) == 4 or len(filhos) == 5):
+            profundidade = 7
+            tempLimit = 3.1
 
-    if(len(filhos) >= 10):
-        profundidade = 2
-        tempLimit = 1.7
+        elif(len(filhos) > 5 and len(filhos) < 8):
+            profundidade = 5
+            tempLimit = 2.7
 
-    if(len(filhos) >= 20):
-        profundidade = 1
-        tempLimit = 1.7
+        elif(len(filhos) >= 8 and len(filhos) < 10):
+            profundidade = 4
+            tempLimit = 2.5
+
+        elif(len(filhos) >= 10 and len(filhos) <= 17):
+            profundidade = 2
+            tempLimit = 1.9
+
+        else:
+            profundidade = 1
+            tempLimit = 1.9
+
+    else:
+        if(n_pecas < 50):
+
+            if(len(filhos) <= 3):
+                profundidade = 10
+                tempLimit = 3.5
+
+            elif(len(filhos) > 3 and len(filhos) <= 5):
+                profundidade = 7
+                tempLimit = 3.5
+            elif(len(filhos) > 5 and len(filhos) <= 7):
+                profundidade = 5
+                tempLimit = 3.1
+            else:
+                profundidade = 4
+                tempLimit = 2.5  
+
+        elif(n_pecas >= 50 and n_pecas <= 55):
+
+            if(len(filhos) <= 3):
+                profundidade = 10
+                tempLimit = 3.5
+            else:
+                profundidade = 8
+                tempLimit = 3.5
+        else:
+                profundidade = 10
+                tempLimit = 3.5
+
     bestValue = float('-infinity')
     val = bestValue
     filhoslist = []
@@ -134,7 +172,8 @@ def play(tabuleiro, cor, torneio):
         y = pos_y(posMov)
         saida = open ( 'move.txt' , 'w' )
         saida.write(str(x) + "," + str(y))
-    #print "Retorno da funcao filhos", filhos
+
+
     for filho in filhos:
 
         if((filho == 0 or filho == 7 or filho == 56 or filho == 63) and torneio):
@@ -143,11 +182,13 @@ def play(tabuleiro, cor, torneio):
             y = pos_y(posMov)
             saida = open ( 'move.txt' , 'w' )
             saida.write(str(x) + "," + str(y))
+            write_mov = False
             return 1
 
-        thread = start_alfabeta(tabuleiro, filho, cor, tempBase, profundidade)
-        threads.append(thread)
-        thread.start()
+        else:
+            thread = start_alfabeta(tabuleiro, filho, cor, tempBase, profundidade)
+            threads.append(thread)
+            thread.start()
 
     for th in threads:
         #print "threads", threads
@@ -156,28 +197,20 @@ def play(tabuleiro, cor, torneio):
         tupValFilho = th.getFilhoValor()
         val = tupValFilho[0]
         filho = tupValFilho[1]
-        if (val > bestValue):
+        if (val > bestValue and write_mov):
             bestValue = val
             posMov = filho
-            #print "Achou um melhor", val, filho
-        #print "valor retornado", val
-        #a = raw_input("A")
 
-    '''for val in valList:
-            if (val > bestValue):
-                bestValue = val
-                posMov = filho
-                print "Achou um melhor", val, filho'''
-    #print "\n\nvalList", valList
-    #print "time", time.time() - tempBase
-    #a = raw_input("Faz mov:?")
-    if(not torneio):
-        make_mov(tabuleiro, posMov, cor)
-    else:
+
+    if(write_mov):
+        quina(tabuleiro, posMov, cor)
         x = pos_x(posMov)
         y = pos_y(posMov)
+        #print "Achou um melhor", val, filho
         saida = open ( 'move.txt' , 'w' )
         saida.write(str(x) + "," + str(y))
+    if(not torneio):
+        make_mov(tabuleiro, posMov, cor)
 
 
 
@@ -261,6 +294,51 @@ def isValidMov(tab, pos, movs, cor):
 
     return False
 
+def quina(tab, filho, cor):
+
+    tup = conta_pecas(tab)   
+    n_pecas = tup[0] + tup[1]
+    op = oponente(cor)
+    if(n_pecas < 50):
+        if((filho == 9 or filho == 1 or filho == 8) and tab[0] != cor):
+
+            if(filho == 9 and tab[18] != EMPTY and tab[63] != cor):
+                while(True):
+                    pass
+
+            if(filho == 1):
+                if(tab[2] == op):
+                    while(True):
+                        pass
+                if(tab[2] == cor and tab[3] == cor):
+                    if(tab[4] == op):
+                        while(True):
+                            pass
+                    if(tab[4] == cor and tab[5] == cor and tab[6] != EMPTY):
+
+                        if(tab[6] == op):
+                            while(True):
+                                pass
+                        if(tab[7] == op):
+                            while(True):
+                                pass
+            if(filho == 8):
+                if(tab[16] == op):
+                    while(True):
+                        pass
+                if(tab[16] == cor and tab[24] == cor):
+                    if(tab[32] == op):
+                        while(True):
+                            pass
+                    if(tab[32] == cor and tab[40] == cor and tab[48] != EMPTY):
+                        if(tab[48] == op):
+                            while(True):
+                                pass
+                        if(tab[56] == op):
+                            while(True):
+                                pass
+
+
 def isSeqOp(tab, pos, movs, cor):
     x = pos_x(pos)
     y = pos_y(pos)   
@@ -289,7 +367,6 @@ def oponentes_seq(tab, pos, cor, movs):
             pos_reversi.append(nPos)
 
         else:
-                #if(isInsideBoard(tab, nPos, movs)):
                 if(isSeqOp(tab, nPos, movs, oponente(cor))):
                     #if (tab[nPos + movs] == oponente(cor)): 
                     return pos_reversi
@@ -326,11 +403,11 @@ def minimax_alfabeta(tab, profundidade, maxPlayer, corInit, cor, alfa, beta):
         if(tab_full(tab)):
             tup = conta_pecas(tab)
             if (corInit == BLACK):
-                if(tup[0] > 32):
-                    return 1000
+                if(tup[0] > 47):
+                    return 2000
             else:
-                if(tup[1] > 32):
-                    return 1000
+                if(tup[1] > 47):
+                    return 2000
 
         return heuristica(tab, corInit)
     if maxPlayer:
@@ -378,22 +455,27 @@ def heuristica(tabuleiro, cor):
         Valores_locais[62] = 50
         Valores_locais[54] = 10
 
-    if(tabuleiro[0] == oponente(cor)):
-        Valores_locais[1] = -40
-        Valores_locais[8] = -40
+    if(tabuleiro[2] == oponente(cor) and tabuleiro[10] == oponente(cor) and tabuleiro[18] == oponente(cor)
+        and tabuleiro[17] == oponente(cor) and tabuleiro[16] == oponente(cor)):
+        Valores_locais[1] = -50
+        Valores_locais[8] = -50
         Valores_locais[9] = -60
-    if(tabuleiro[7] == oponente(cor)):
-        Valores_locais[6] = -40
-        Valores_locais[15] = -40
+    if(tabuleiro[5] == oponente(cor) and tabuleiro[13] == oponente(cor) and tabuleiro[21] == oponente(cor)
+        and tabuleiro[22] == oponente(cor) and tabuleiro[23] == oponente(cor)):
+        Valores_locais[6] = -50
+        Valores_locais[15] = -50
         Valores_locais[14] = -60
-    if(tabuleiro[56] == oponente(cor)):
-        Valores_locais[48] = -40
-        Valores_locais[57] = -40
+    if(tabuleiro[40] == oponente(cor) and tabuleiro[41] == oponente(cor) and tabuleiro[42] == oponente(cor)
+        and tabuleiro[50] == oponente(cor) and tabuleiro[58] == oponente(cor)):
+        Valores_locais[48] = -50
+        Valores_locais[57] = -50
         Valores_locais[49] = -60
-    if(tabuleiro[63] == oponente(cor)):
-        Valores_locais[55] = -40
-        Valores_locais[62] = -40
+    if(tabuleiro[46] == oponente(cor) and tabuleiro[47] == oponente(cor) and tabuleiro[45] == oponente(cor)
+        and tabuleiro[53] == oponente(cor) and tabuleiro[61] == oponente(cor)):
+        Valores_locais[55] = -50
+        Valores_locais[62] = -50
         Valores_locais[54] = -60
+
 
     for i in pos_pecas_cor:
         val = val + Valores_locais[i]
@@ -572,6 +654,7 @@ def main(cmd_args):
                     print "GAME OVER NAO HA MOVS POSSIVEIS"
                     break
     else:
+        
         cor = player_cor(cmd_args[1])
         tab = ler_tab(cmd_args[0])
         enable_play = play(tab, cor, True)
@@ -580,11 +663,11 @@ def main(cmd_args):
             saida = open ( 'move.txt' , 'w' )
             saida.write("-1,-1")
 
-
-    print_board(tab)
-    print "Verifica vencedor"
-    tup = conta_pecas(tab)
-    print "Pecas pretas ", tup[0],"Pecas brancas", tup[1]
+    if (len(cmd_args) == 0):
+        print_board(tab)
+        print "Verifica vencedor"
+        tup = conta_pecas(tab)
+        print "Pecas pretas ", tup[0],"Pecas brancas", tup[1]
 
 if __name__ == '__main__':
     main(sys.argv[1:]) 

@@ -1,8 +1,8 @@
-WWWWWWWW
-BBBWWB.B
-WBWBBBWB
-WWWWWWWB
-WWBBWBWB
-WWWWBWWB
-WWWWWWWB
-WWWWWWWW
+........
+........
+..BW.W..
+...WW...
+...WB...
+..BWBWWW
+...BB...
+..B.BW..
