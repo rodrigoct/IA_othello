@@ -2,14 +2,13 @@ from threading import Thread
 import sys
 import time
 from threading import Timer
-#import py_compile
-#py_compile.compile("othello.py")
+
 
 EMPTY, BLACK, WHITE = '.', 'B', 'W'
 PIECES = (EMPTY, BLACK, WHITE)
 PLAYERS = {BLACK: 'Black', WHITE: 'White'}
 
-# Direcao possivel
+# Direcoes possiveis
 UP, DOWN, LEFT, RIGHT = -8, 8, -1, 1
 NE, SE, SWE, NWE = -7, 9, 7, -9
 DIRECTIONS = (UP, NE, RIGHT, SE, DOWN, SWE, LEFT, NWE)
@@ -40,18 +39,8 @@ TAB_VALORES = [
 
 ]
 
-'''TAB_VALORES = [
 
-    120, -20,  20,   5,   5,  20, -20, 120,
-    -20, -40,  -5,  -5,  -5,  -5, -40, -20,
-    20,  -5,  15,   3,   3,  15,  -5,  20,
-    5,  -5,   3,   3,   3,   3,  -5,   5,
-    5,  -5,   3,   3,   3,   3,  -5,   5,
-    20,  -5,  15,   3,   3,  15,  -5,  20,
-    -20, -40,  -5,  -5,  -5,  -5, -40, -20,
-    120, -20,  20,   5,   5,  20, -20, 120
-]'''
-
+#Thread que iniciara o algoritmo minimax a partir de um dado filho
 class start_alfabeta(Thread):
     val = 0
     def __init__(self, tabuleiro, filho, cor, tempBase, profundidade):
@@ -63,20 +52,19 @@ class start_alfabeta(Thread):
         self.profundidade = profundidade
 
     def run(self):
-            #print "Nome da thread", self
             new_tab = self.tabuleiro
             cor = self.cor
             filho = self.filho
             profundidade = self.profundidade
             make_mov(new_tab, filho, cor)
             self.val = minimax_alfabeta(new_tab, profundidade, False, cor, oponente(cor), float('-infinity'), float('infinity'))
-            #print "threadname retorna val", self.val, self
+
     def getFilhoValor(self):
         #print "Retorna getvalue"
         return self.val, self.filho          
 
-def tabuleiro_init():
     """Cria o tabuleiro com o estado inicial do jogo"""
+def tabuleiro_init():
     tab = [EMPTY] * 64
     for i in range(0, 64):
         tab[i] = EMPTY
@@ -86,7 +74,7 @@ def tabuleiro_init():
     tab[35], tab[36] = BLACK, WHITE
     return tab
 
-
+#Funcao que recebe o tabuleiro e a cor com a qual a jogada deve ser feita e retorna uma jogada 
 def play(tabuleiro, cor, torneio):
     global tempBase, tempLimit, escreve_mov
     write_mov = True
@@ -191,8 +179,6 @@ def play(tabuleiro, cor, torneio):
             thread.start()
 
     for th in threads:
-        #print "threads", threads
-        #print "nome da thread", th
         th.join()
         tupValFilho = th.getFilhoValor()
         val = tupValFilho[0]
@@ -203,25 +189,22 @@ def play(tabuleiro, cor, torneio):
 
 
     if(write_mov):
-        quina(tabuleiro, posMov, cor)
         x = pos_x(posMov)
         y = pos_y(posMov)
-        #print "Achou um melhor", val, filho
         saida = open ( 'move.txt' , 'w' )
         saida.write(str(x) + "," + str(y))
     if(not torneio):
         make_mov(tabuleiro, posMov, cor)
 
 
-
+#Retorna as posicoes que as pecas de uma determinada cor se encontra
 def find_pecas(tabuleiro, cor):
     pos_pecas = []
     for i in range(0 ,64):
         if(tabuleiro[i] == cor):
             pos_pecas.append(i)
-            #print i, tabuleiro[i]
     return pos_pecas
-
+#Verifica se o tabuleiro ja esta cheio
 def tab_full(tabuleiro):
     for i in range(0 ,64):
         if(tabuleiro[i] == EMPTY):
@@ -229,6 +212,7 @@ def tab_full(tabuleiro):
 
     return True
 
+#Retorna os movimentos possiveis a partir de uma determinada posicao
 def find_vizinhos(tabuleiro, pos_init, cor, k):
     vizinhos = {}
     tuplaret = ()
@@ -237,12 +221,12 @@ def find_vizinhos(tabuleiro, pos_init, cor, k):
             nPos = pos_init + movs
             if (tabuleiro[nPos] == cor):
                 tuplaret = mov_possiveis(tabuleiro, nPos, cor, movs)
-                #print tuplaret
                 vizinhos[str(k)] = {"pos_fin": tuplaret[0], "npecas" : tuplaret[1]}
                 k = k + 1
 
     return vizinhos
 
+#Retorna as posicoes dos movimentos possiveis para um determinado jogador
 def find_filhos(tabuleiro, cor):
 
     vizinhos = {}
@@ -268,13 +252,13 @@ def find_filhos(tabuleiro, cor):
 
     return filhos
 
-#board
+
 def isInsideBoard(tab, pos, movs):
     if (pos + movs >= 0 and pos + movs < 64):
         return True
     return False
 
-#board e cor da peca
+
 def isValidMov(tab, pos, movs, cor):
     x = pos_x(pos)
     y = pos_y(pos)
@@ -294,49 +278,6 @@ def isValidMov(tab, pos, movs, cor):
 
     return False
 
-def quina(tab, filho, cor):
-
-    tup = conta_pecas(tab)   
-    n_pecas = tup[0] + tup[1]
-    op = oponente(cor)
-    if(n_pecas < 50):
-        if((filho == 9 or filho == 1 or filho == 8) and tab[0] != cor):
-
-            if(filho == 9 and tab[18] != EMPTY and tab[63] != cor):
-                while(True):
-                    pass
-
-            if(filho == 1):
-                if(tab[2] == op):
-                    while(True):
-                        pass
-                if(tab[2] == cor and tab[3] == cor):
-                    if(tab[4] == op):
-                        while(True):
-                            pass
-                    if(tab[4] == cor and tab[5] == cor and tab[6] != EMPTY):
-
-                        if(tab[6] == op):
-                            while(True):
-                                pass
-                        if(tab[7] == op):
-                            while(True):
-                                pass
-            if(filho == 8):
-                if(tab[16] == op):
-                    while(True):
-                        pass
-                if(tab[16] == cor and tab[24] == cor):
-                    if(tab[32] == op):
-                        while(True):
-                            pass
-                    if(tab[32] == cor and tab[40] == cor and tab[48] != EMPTY):
-                        if(tab[48] == op):
-                            while(True):
-                                pass
-                        if(tab[56] == op):
-                            while(True):
-                                pass
 
 
 def isSeqOp(tab, pos, movs, cor):
@@ -357,6 +298,7 @@ def isSeqOp(tab, pos, movs, cor):
             return True    
     return False
 
+#Retorna as pecas que seram viradas para determinado movimento
 def oponentes_seq(tab, pos, cor, movs):
     nPos = pos
     pos_reversi = []
@@ -367,8 +309,7 @@ def oponentes_seq(tab, pos, cor, movs):
             pos_reversi.append(nPos)
 
         else:
-                if(isSeqOp(tab, nPos, movs, oponente(cor))):
-                    #if (tab[nPos + movs] == oponente(cor)): 
+                if(isSeqOp(tab, nPos, movs, oponente(cor))): 
                     return pos_reversi
                 else:
                     pos_reversi = []
@@ -397,7 +338,6 @@ def minimax_alfabeta(tab, profundidade, maxPlayer, corInit, cor, alfa, beta):
     new_tab = tab[:]
     timeC = time.time() - tempBase
     if (timeC > tempLimit):
-        #print "Tempo expirou ", profundidade
         return heuristica(tab, corInit)
     if profundidade == 0 or tab_full(tab):
         if(tab_full(tab)):
@@ -432,7 +372,7 @@ def minimax_alfabeta(tab, profundidade, maxPlayer, corInit, cor, alfa, beta):
         return beta
 
 def heuristica(tabuleiro, cor):
-    #print "qntd de pecas ", len(find_pecas(tabuleiro, cor))
+
     val = 0
     Valores_locais = TAB_VALORES[:]
     pos_pecas_cor = find_pecas(tabuleiro, cor)
@@ -565,7 +505,6 @@ def human(tab, cor):
 
 
 def conta_pecas(tabuleiro):
-    #print "qntd de pecas ", len(find_pecas(tabuleiro, cor))
     n_blacks = 0
     n_whites = 0
     pos_pecas_b = find_pecas(tabuleiro, BLACK)
